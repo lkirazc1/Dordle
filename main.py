@@ -16,16 +16,24 @@ dictionary = ["aahed","aalii","aargh","aarti","abaca","abaci","abacs","abaft","a
 
 
 class Dordle:
-    WIDTH, HEIGHT = 1000, 1200
-    YELLOW = (255, 204, 0)
-    GREEN = (0, 204, 136)
-    win = pygame.display.set_mode((WIDTH, HEIGHT))
-    TITLE_FONT = pygame.font.SysFont("comicsans", 60)
-    CAPTION_FONT = pygame.font.SysFont("comicsans", 40)
-
-    def __init__(self):
-        self.start()
+    def __init__(self) -> None:
+        self.WIDTH, self.HEIGHT = 1000, 1200
+        self.YELLOW = (255, 204, 0)
+        self.GREEN = (0, 204, 136)
+        self.win = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.TITLE_FONT = pygame.font.SysFont("comicsans", 60)
+        self.CAPTION_FONT = pygame.font.SysFont("comicsans", 40)
+        self.SHOUTOUT_FONT = pygame.font.SysFont("comicsans", 30)
         pygame.display.set_caption("Dordle")
+        choice = None
+        while choice is None:
+            choice = self.start()
+        if choice == "daily":
+            word1, word2 = self.get_word("daily")
+        elif choice  == "free":
+            word1, word2 = self.get_word("free")
+        self.play(word1, word2)
+
 
     @staticmethod
     def get_days_since_epoch():
@@ -34,20 +42,41 @@ class Dordle:
         minute = 60
         return time.time() / (day * hour * minute)
 
-    def get_word(self, mode):
+    def get_word(self, mode: str):
         if mode == "daily":
-            return words[math.floor(Dordle.get_days_since_epoch()) % len(words)]
+            return words[math.floor(Dordle.get_days_since_epoch()) * 2 % len(words)], words[(math.floor(Dordle.get_days_since_epoch()) * 2 + 1)% len(words)]
 
-        elif mode == "random":
-            return random.choice(words)
+        elif mode == "free":
+            word1 = random.choice(words)
+            word2 = random.choice(words)
+            while word2 == word1:
+                word2 = random.choice(words)
+            return word1, word2
+
+    
+    def handle_mouse_click(self, mouse_pos: tuple, buttons: dict):
+        x, y = mouse_pos
+        for string, button in buttons.items():
+            if x in range(button.x, button.x + button.width) and y in range(button.y, button.y + button.height):
+                return string
+
+        return None
+
+
 
     def start(self):
         done = False
         while not done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    done = True
-            self.starting_page()
+                    pygame.quit()
+                    quit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    clicked = self.handle_mouse_click(pygame.mouse.get_pos(), buttons)
+                    if clicked is not None:
+                        return clicked
+            
+            buttons = self.starting_page()
 
     @staticmethod
     def get_hours_till_next_wordle():
@@ -78,20 +107,30 @@ class Dordle:
                 text = self.TITLE_FONT.render("R", 1, (0, 0, 0))
                 self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
             elif i == 3:
+                pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap), top_margin, box_width // 2, box_height))
                 text = self.TITLE_FONT.render("D", 1, (0, 0, 0))
                 self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
             elif i == 4:
+                pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap), top_margin, box_width // 2, box_height))
                 text = self.TITLE_FONT.render("L", 1, (0, 0, 0))
                 self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
             elif i == 5:
+                pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap), top_margin, box_width // 2, box_height))
+                pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2, top_margin, box_width // 2, box_height))
                 text = self.TITLE_FONT.render("E", 1, (0, 0, 0))
                 self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
-        
+        # shoutout the creator of wordle
+        gap = 80
+        top_margin = top_margin + box_height + gap
+        text = self.SHOUTOUT_FONT.render("based on Wordle by Josh Wardle", 1, (0, 0, 0))
+        self.win.blit(text, (self.WIDTH // 2 - text.get_width() // 2, top_margin))
 
+        buttons = {}
         # draw daily dordle button
         box_height = 85
         box_width = 600
-        top_margin = 400
+        top_margin = 500
+        buttons["daily"] = pygame.Rect(self.WIDTH // 2 - box_width // 2, top_margin, box_width, box_height)
         pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - box_width // 2, top_margin, box_width, box_height), 2)
         pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2 - box_width // 2, top_margin, box_width // 2, box_height))
         pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - box_width // 2 + box_width // 2, top_margin, box_width // 2, box_height))
@@ -99,7 +138,7 @@ class Dordle:
         dordle_text = self.TITLE_FONT.render("dordle", 1, (0, 0, 0))
         self.win.blit(daily_text, (self.WIDTH // 2 - daily_text.get_width() - 5, top_margin + box_height // 2 - daily_text.get_height() // 2))
         self.win.blit(dordle_text, (self.WIDTH // 2 + 5, top_margin + box_height // 2 - dordle_text.get_height() // 2))
-        
+
         # draw description of daily dordle
 
         box_height = 150
@@ -115,9 +154,34 @@ class Dordle:
         self.win.blit(text, (self.WIDTH // 2 - text.get_width() // 2, box_top_margin + box_height // 2 - text.get_height() // 2 + box_height // 4))
         
 
+        # draw free dordle button
+        box_height = 85
+        box_width = 600
+        gap = 150
+        top_margin = box_top_margin + gap + box_height
+        buttons["free"] = pygame.Rect(self.WIDTH // 2 - box_width // 2, top_margin, box_width, box_height)
+        pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - box_width // 2, top_margin, box_width, box_height), 2)
+        pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2 - box_width // 2, top_margin, box_width // 2, box_height))
+        pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - box_width // 2 + box_width // 2, top_margin, box_width // 2, box_height))
+        daily_text = self.TITLE_FONT.render("free", 1, (0, 0, 0))
+        dordle_text = self.TITLE_FONT.render("dordle", 1, (0, 0, 0))
+        self.win.blit(daily_text, (self.WIDTH // 2 - daily_text.get_width() - 5, top_margin + box_height // 2 - daily_text.get_height() // 2))
+        self.win.blit(dordle_text, (self.WIDTH // 2 + 5, top_margin + box_height // 2 - dordle_text.get_height() // 2))
 
+        # draw description of free dordle
 
+        box_height = 150
+        box_width = self.WIDTH - 100
+        gap = 15
+        box_top_margin = top_margin + 85 + gap
+        pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - box_width // 2, box_top_margin, box_width, box_height), 2)
+        pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - box_width // 2, box_top_margin, box_width // 2, box_height))
+        pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2, box_top_margin, box_width // 2, box_height))
+        text = self.CAPTION_FONT.render("play as much as you want", 1, (0, 0, 0))
+        self.win.blit(text, (self.WIDTH // 2 - text.get_width() // 2, box_top_margin + box_height // 2 - text.get_height() // 2 - box_height // 4))
+        text = self.CAPTION_FONT.render(f"every dordle is a surprise", 1, (0, 0, 0))
+        self.win.blit(text, (self.WIDTH // 2 - text.get_width() // 2, box_top_margin + box_height // 2 - text.get_height() // 2 + box_height // 4))
         pygame.display.update()
-
+        return buttons
 
 game = Dordle()
