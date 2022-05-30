@@ -1,3 +1,5 @@
+from datetime import datetime
+import math
 import pygame
 import random
 import time
@@ -18,10 +20,11 @@ class Dordle:
     YELLOW = (255, 204, 0)
     GREEN = (0, 204, 136)
     win = pygame.display.set_mode((WIDTH, HEIGHT))
-    TITLE_FONT = pygame.font.SysFont("comicsans", 30)
+    TITLE_FONT = pygame.font.SysFont("comicsans", 60)
+    CAPTION_FONT = pygame.font.SysFont("comicsans", 40)
 
     def __init__(self):
-        self.starting_page()
+        self.start()
         pygame.display.set_caption("Dordle")
 
     @staticmethod
@@ -29,15 +32,28 @@ class Dordle:
         day = 24
         hour = 60
         minute = 60
-        second = 60
-        return int(time.time() / (day * hour * minute * second))
+        return time.time() / (day * hour * minute)
 
     def get_word(self, mode):
         if mode == "daily":
-            return words[Dordle.get_days_since_epoch() % len(words)]
+            return words[math.floor(Dordle.get_days_since_epoch()) % len(words)]
 
         elif mode == "random":
             return random.choice(words)
+
+    def start(self):
+        done = False
+        while not done:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    done = True
+            self.starting_page()
+
+    @staticmethod
+    def get_hours_till_next_wordle():
+        now = datetime.now()
+        return 24 - math.floor(now.hour)
+
 
     def starting_page(self):
         box_width = 75
@@ -50,16 +66,58 @@ class Dordle:
             pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap), top_margin, box_width, box_height), 2)
             if i == 0:
                 pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2, top_margin, box_width // 2, box_height))
+                text = self.TITLE_FONT.render("D", 1, (0, 0, 0))
+                self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
+            elif i == 1:
+                pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap), top_margin, box_width // 2, box_height))
+                pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2, top_margin, box_width // 2, box_height))
+                text = self.TITLE_FONT.render("O", 1, (0, 0, 0))
+                self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
+            elif i == 2:
+                pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2, top_margin, box_width // 2, box_height))
+                text = self.TITLE_FONT.render("R", 1, (0, 0, 0))
+                self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
+            elif i == 3:
+                text = self.TITLE_FONT.render("D", 1, (0, 0, 0))
+                self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
+            elif i == 4:
+                text = self.TITLE_FONT.render("L", 1, (0, 0, 0))
+                self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
+            elif i == 5:
+                text = self.TITLE_FONT.render("E", 1, (0, 0, 0))
+                self.win.blit(text, (self.WIDTH // 2 - (box_width + gap) * 3 + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_margin + box_height // 2 - text.get_height() // 2))
+        
+
+        # draw daily dordle button
+        box_height = 85
+        box_width = 600
+        top_margin = 400
+        pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - box_width // 2, top_margin, box_width, box_height), 2)
+        pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2 - box_width // 2, top_margin, box_width // 2, box_height))
+        pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - box_width // 2 + box_width // 2, top_margin, box_width // 2, box_height))
+        daily_text = self.TITLE_FONT.render("daily", 1, (0, 0, 0))
+        dordle_text = self.TITLE_FONT.render("dordle", 1, (0, 0, 0))
+        self.win.blit(daily_text, (self.WIDTH // 2 - daily_text.get_width() - 5, top_margin + box_height // 2 - daily_text.get_height() // 2))
+        self.win.blit(dordle_text, (self.WIDTH // 2 + 5, top_margin + box_height // 2 - dordle_text.get_height() // 2))
+        
+        # draw description of daily dordle
+
+        box_height = 150
+        box_width = self.WIDTH - 100
+        gap = 15
+        box_top_margin = top_margin + 85 + gap
+        pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - box_width // 2, box_top_margin, box_width, box_height), 2)
+        pygame.draw.rect(self.win, self.YELLOW, (self.WIDTH // 2 - box_width // 2, box_top_margin, box_width // 2, box_height))
+        pygame.draw.rect(self.win, self.GREEN, (self.WIDTH // 2, box_top_margin, box_width // 2, box_height))
+        text = self.CAPTION_FONT.render("a new dordle each day", 1, (0, 0, 0))
+        self.win.blit(text, (self.WIDTH // 2 - text.get_width() // 2, box_top_margin + box_height // 2 - text.get_height() // 2 - box_height // 4))
+        text = self.CAPTION_FONT.render(f"(next in {Dordle.get_hours_till_next_wordle()} hours)", 1, (0, 0, 0))
+        self.win.blit(text, (self.WIDTH // 2 - text.get_width() // 2, box_top_margin + box_height // 2 - text.get_height() // 2 + box_height // 4))
+        
+
 
 
         pygame.display.update()
-            
+
+
 game = Dordle()
-done = False
-
-while not done:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
-
-    game.starting_page()
