@@ -95,7 +95,7 @@ class Dordle:
                 pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - width // 2, top_border, width, height))
 
         # draw keyboard
-        # backspace string is u"\u232b"
+        # backspace string is u"\u232b" 
 
 
         pygame.display.update()
