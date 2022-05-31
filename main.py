@@ -52,6 +52,17 @@ class Dordle:
                     quit()
             self.draw_board(word1, word2, left_letters_guessed, right_letters_guessed, left_current_row, right_current_row, dordle_type == "free")
 
+    def draw_keyboard(self, left_letters, right_letters):
+        """ draws keyboard """
+        # backspace string is u"\u232b" 
+        # enter string is u"\u23CE"
+        first_row = "qwertyuiop"
+        second_row = "asdfghjkl"
+        third_row = u"\u232b" + "zxcvbnm"
+        enter = u"\u23CE"
+
+
+
     def draw_board(self, left_word: str, right_word: str, left_letters_guessed: list[list[str]], right_letters_guessed: list[list[str]], left_current_row: int, right_current_row: int, is_free: bool):
         self.win.fill((255, 255, 255))
         gap = 3
@@ -88,15 +99,15 @@ class Dordle:
                 
                 pygame.draw.rect(self.win, color, (WIDTH // 2 + middle_gap // 2 + j * (box_width + gap), top_border + i * (gap + box_height), box_width, box_height), 2)
                 
-                # draw line down the middle
-                top_border = 100
-                height = (box_height + gap) * 7
-                width = 4
-                pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - width // 2, top_border, width, height))
+        # draw line down the middle
+        top_border = 100
+        height = (box_height + gap) * 7
+        width = 4
+        pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - width // 2, top_border, width, height))
 
         # draw keyboard
-        # backspace string is u"\u232b" 
 
+        self.draw_keyboard(left_letters_guessed, right_letters_guessed)
 
         pygame.display.update()
 
