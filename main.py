@@ -24,15 +24,79 @@ class Dordle:
         self.TITLE_FONT = pygame.font.SysFont("comicsans", 60)
         self.CAPTION_FONT = pygame.font.SysFont("comicsans", 40)
         self.SHOUTOUT_FONT = pygame.font.SysFont("comicsans", 30)
+        self.GAME_FONT = pygame.font.SysFont("comicsans", 60)
         pygame.display.set_caption("Dordle")
         choice = None
         while choice is None:
             choice = self.start()
         if choice == "daily":
             word1, word2 = self.get_word("daily")
+            dordle_type = "daily"
         elif choice  == "free":
             word1, word2 = self.get_word("free")
-        self.play(word1, word2)
+            dordle_type = "free"
+        self.play(word1, word2, dordle_type)
+
+    def play(self, word1, word2, dordle_type):
+        done = False
+        left_letters_guessed = [['' for _ in range(5)] for _ in range(7)]
+        right_letters_guessed = [['' for _ in range(5)] for _ in range(7)]
+        left_finished = False
+        right_finished = False
+        left_current_row = 0
+        right_current_row = 0
+        while not done:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+            self.draw_board(word1, word2, left_letters_guessed, right_letters_guessed, left_current_row, right_current_row, dordle_type == "free")
+
+    def draw_board(self, left_word: str, right_word: str, left_letters_guessed: list[list[str]], right_letters_guessed: list[list[str]], left_current_row: int, right_current_row: int, is_free: bool):
+        self.win.fill((255, 255, 255))
+        gap = 3
+        box_height, box_width = 100, 90
+        top_border = 100
+        left_border = 20
+        middle_gap = 50
+        # draw left boxes
+        for i in range(7):
+            for j in range(5):
+                
+                # draw left rects with correct colors
+
+                color = (0, 0, 0)
+                if left_letters_guessed[i][j] == left_word[j] and i < left_current_row:
+                    color = self.GREEN
+                
+
+                if left_letters_guessed[i][j] in left_word and i < left_current_row and ''.join(left_letters_guessed)[:j].count(left_letters_guessed[i][j]) < left_word.count(left_letters_guessed[i][j]):
+                    color = self.YELLOW
+                
+                pygame.draw.rect(self.win, color, (left_border + j * (box_width + gap), top_border + i * (gap + box_height), box_width, box_height), 2)
+                
+                # draw right rects with correct colors
+
+
+                if right_letters_guessed[i][j] == right_word[j] and i < right_current_row:
+                    color = self.GREEN
+                
+
+                if right_letters_guessed[i][j] in right_word and i < right_current_row and ''.join(right_letters_guessed)[:j].count(right_letters_guessed[i][j]) < right_word.count(right_letters_guessed[i][j]):
+                    color = self.YELLOW
+                
+                
+                pygame.draw.rect(self.win, color, (WIDTH // 2 + middle_gap // 2 + j * (box_width + gap), top_border + i * (gap + box_height), box_width, box_height), 2)
+                
+                # draw line down the middle
+                top_border = 100
+                height = 700
+                width = 4
+                pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - width // 2, top_border, width, height))
+
+
+        pygame.display.update()
+
 
 
     @staticmethod
@@ -183,5 +247,8 @@ class Dordle:
         self.win.blit(text, (self.WIDTH // 2 - text.get_width() // 2, box_top_margin + box_height // 2 - text.get_height() // 2 + box_height // 4))
         pygame.display.update()
         return buttons
+
+    def restart(self):
+        self = Dordle()
 
 game = Dordle()
