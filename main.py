@@ -52,14 +52,43 @@ class Dordle:
                     quit()
             self.draw_board(word1, word2, left_letters_guessed, right_letters_guessed, left_current_row, right_current_row, dordle_type == "free")
 
-    def draw_keyboard(self, left_letters, right_letters):
+
+
+
+    def draw_keyboard(self, left_letters, right_letters, top_border, side_border, gap):
         """ draws keyboard """
         # backspace string is u"\u232b" 
         # enter string is u"\u23CE"
         first_row = "qwertyuiop"
         second_row = "asdfghjkl"
-        third_row = u"\u232b" + "zxcvbnm"
+        third_row = []
+        third_row += [u"\u232b"]
+        third_row += list("zxcvbnm")
         enter = u"\u23CE"
+        box_width, box_height = (self.WIDTH - 2 * side_border) / len(first_row), (self.WIDTH - 2 * side_border) / len(first_row)
+        box_width -= gap
+        box_height -= gap
+        rows = [first_row, second_row, third_row]
+        positions = {}
+        for j in range(len(rows)):
+            for i in range(len(rows[j])):
+
+                if rows[j][i] == u"\u232b":
+                    positions[rows[j][i]] = (side_border + i * box_width, top_border)
+                    # draw delete button
+                    pygame.draw.rect(self.win, (0, 0, 0), (side_border + i * (gap + box_width), top_border + j * (gap + box_height), box_width, box_height), 2)
+                    unistr = u"\u232b"
+                    f = pygame.font.Font("seguisym.ttf", 64)
+                    text = f.render(unistr, True, (0, 0, 0))
+                    self.win.blit(text, (side_border + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_border + box_height // 2 - text.get_height() // 2 + j * (gap + box_height)))
+                else:
+                    pygame.draw.rect(self.win, (0, 0, 0), (side_border + i * (box_width + gap), top_border + j * (gap + box_height), box_width, box_height), 2)
+                    positions[rows[j][i]] = pygame.Rect(side_border + i * (box_width + gap), top_border + j * (gap + box_height), box_width, box_height)
+                    text = self.GAME_FONT.render(rows[j][i], True, (0, 0, 0))
+                    self.win.blit(text, (side_border + i * (box_width + gap) + box_width // 2 - text.get_width() // 2, top_border + box_height // 2 - text.get_height() // 2 + j * (gap + box_height)))
+            
+        
+        
 
 
 
@@ -106,8 +135,11 @@ class Dordle:
         pygame.draw.rect(self.win, (0, 0, 0), (self.WIDTH // 2 - width // 2, top_border, width, height))
 
         # draw keyboard
-
-        self.draw_keyboard(left_letters_guessed, right_letters_guessed)
+        top_border = top_border + height
+        side_border = left_border
+        gap = 5
+        between_boxes = 3
+        self.draw_keyboard(left_letters_guessed, right_letters_guessed, top_border + gap, side_border, between_boxes)
 
         pygame.display.update()
 
