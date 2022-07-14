@@ -53,6 +53,18 @@ class Dordle:
     def _unpack_grid(self, grid):
         return [grid[i][j] for i in range(len(grid)) for j in range(len(grid[0]))]
 
+    def next_valid_place(self, letters, current_row):
+        for i, letter in enumerate(letters[current_row]):
+            if letter == '':
+                return (current_row, i)
+
+        return None
+
+    def validate_word(self, letters):
+        if ''.join(letters) in words or ''.join(letters) in dictionary:
+            return True
+        return False
+
     def play(self, word1, word2, dordle_type):
         done = False
         left_letters_guessed = [['' for _ in range(5)] for _ in range(7)]
@@ -61,12 +73,65 @@ class Dordle:
         right_finished = False
         left_current_row = 0
         right_current_row = 0
+        keys = {pygame.K_a: 'a', pygame.K_b: 'b', pygame.K_c: 'c', pygame.K_d: 'd', pygame.K_e: 'e', pygame.K_f: 'f', pygame.K_g: 'g', pygame.K_h: 'h', pygame.K_i: 'i', pygame.K_j: 'j', pygame.K_k: 'k', pygame.K_l: 'l', pygame.K_m: 'm', pygame.K_n: 'n', pygame.K_o: 'o', pygame.K_p: 'p', pygame.K_q: 'q', pygame.K_r: 'r', pygame.K_s: 's', pygame.K_t: 't', pygame.K_u: 'u', pygame.K_v: 'v', pygame.K_w: 'w', pygame.K_x: 'x', pygame.K_y: 'y', pygame.K_z: 'z'}
+        letter_clicked = None
+        print(word1, word2)
         while not done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-            self.draw_board(word1, word2, left_letters_guessed, right_letters_guessed, left_current_row, right_current_row, dordle_type == "free")
+                
+
+                if letter_clicked is not None:
+                    if letter_clicked in ["enter1", "enter2", "enter3"]:
+                        
+                        if not left_finished and self.validate_word(left_letters_guessed[left_current_row]):
+                            left_current_row += 1
+                            if ''.join(left_letters_guessed[left_current_row]) == word1:
+                                left_finished = True
+
+                            
+                        if not right_finished and self.validate_word(right_letters_guessed[right_current_row]):
+                            right_current_row += 1
+                            if ''.join(right_letters_guessed[right_current_row]) == word2:
+                                right_finished = True
+                        
+
+
+                    # TODO: put letter into board
+                    if not left_finished:
+                        indexes = self.next_valid_place(left_letters_guessed, left_current_row)
+                        if indexes is not None:
+                            left_letters_guessed[indexes[0]][indexes[1]] = letter_clicked
+                            letter_clicked = None
+                            
+
+                    if not right_finished:
+                        indexes = self.next_valid_place(right_letters_guessed, right_current_row)
+                        if indexes is not None:
+                            right_letters_guessed[indexes[0]][indexes[1]] = letter_clicked
+                            letter_clicked = None
+
+
+
+                if event.type == pygame.KEYDOWN:
+                    try:
+                        letter_clicked = keys[event.key]
+                    except:
+                        pass
+
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    for letter in key_positions.keys():
+                        if mouse_x in range(key_positions[letter].x, key_positions[letter].x + key_positions[letter].width) and mouse_y in range(key_positions[letter].y, key_positions[letter].y + key_positions[letter].height):
+                            letter_clicked = letter
+                            break
+
+                        
+            # letter or enter or delete to pygame.Rect
+            key_positions: dict = self.draw_board(word1, word2, left_letters_guessed, right_letters_guessed, left_current_row, right_current_row, dordle_type == "free")
 
 
 
@@ -90,7 +155,7 @@ class Dordle:
             for i in range(len(rows[j])):
 
                 if rows[j][i] == u"\u232b":
-                    positions[rows[j][i]] = (side_border + i * box_width, top_border)
+                    positions["delete"] = pygame.Rect(side_border + i * (box_width + gap), top_border + j * (gap + box_height), box_width, box_height)
                     # draw delete button
                     pygame.draw.rect(self.win, (0, 0, 0), (side_border + i * (gap + box_width), top_border + j * (gap + box_height), box_width, box_height), 2)
                     unistr = u"\u232b"
@@ -111,12 +176,9 @@ class Dordle:
         # draw enter symbol
         pygame.draw.polygon(self.win, (0, 0, 0), [(side_border + len(second_row) * (gap + box_width), top_border + box_height + gap), (side_border + len(first_row) * (box_width + gap) - gap, top_border + box_height + gap), (side_border + len(first_row) * (gap + box_width) - gap, top_border + gap * 2 + box_height * 3), (side_border + len(third_row) * (box_width + gap), top_border + gap * 2 + box_height * 3), (side_border + len(third_row) * (box_width + gap), top_border + 2 * (gap + box_height)), (side_border + len(second_row) * (gap + box_width), top_border + 2 * (gap + box_height))], 2)
 
-        positions[myRect(side_border + len(third_row) * (gap + box_width), top_border + 2 * (box_height + gap), box_width, box_height)] = "enter1"
-        positions[myRect(side_border + len(second_row) * (gap + box_width), top_border + 2 * (box_height + gap), box_width, box_height)] = "enter2"
-        positions[myRect(side_border + len(second_row) * (gap + box_width), top_border + box_height + gap, box_width, box_height)] = "enter3"
-        positions["enter1"] = myRect(side_border + len(third_row) * (gap + box_width), top_border + 2 * (box_height + gap), box_width, box_height)
-        positions["enter2"] = myRect(side_border + len(second_row) * (gap + box_width), top_border + 2 * (box_height + gap), box_width, box_height)
-        positions["enter3"] = myRect(side_border + len(second_row) * (gap + box_width), top_border + box_height + gap, box_width, box_height)
+        positions["enter1"] = pygame.Rect(side_border + len(third_row) * (gap + box_width), top_border + 2 * (box_height + gap), box_width, box_height)
+        positions["enter2"] = pygame.Rect(side_border + len(second_row) * (gap + box_width), top_border + 2 * (box_height + gap), box_width, box_height)
+        positions["enter3"] = pygame.Rect(side_border + len(second_row) * (gap + box_width), top_border + box_height + gap, box_width, box_height)
 
 
         f = pygame.font.Font("seguisym.ttf", 64)
@@ -152,9 +214,10 @@ class Dordle:
 
                 color = (0, 0, 0)
                 if left_letters_guessed[i][j] == left_word[j] and i < left_current_row:
+                    color = self.GREEN
                     left_highlights[left_letters_guessed[i][j]] = self.GREEN
 
-                if left_letters_guessed[i][j] in left_word and i < left_current_row and ''.join(left_letters_guessed)[:j].count(left_letters_guessed[i][j]) < left_word.count(left_letters_guessed[i][j]):
+                elif left_letters_guessed[i][j] in left_word and i < left_current_row and ''.join(left_letters_guessed[i])[:j].count(left_letters_guessed[i][j]) < left_word.count(left_letters_guessed[i][j]):
                     color = self.YELLOW
                     try:
                         _ = left_highlights[left_letters_guessed[i][j]]
@@ -172,8 +235,7 @@ class Dordle:
                     color = self.GREEN
                     right_highlights[right_letters_guessed[i][j]] = self.GREEN
                 
-
-                if right_letters_guessed[i][j] in right_word and i < right_current_row and ''.join(right_letters_guessed)[:j].count(right_letters_guessed[i][j]) < right_word.count(right_letters_guessed[i][j]):
+                elif right_letters_guessed[i][j] in right_word and i < right_current_row and list(''.join(right_letters_guessed[i]))[:j].count(right_letters_guessed[i][j]) < right_word.count(right_letters_guessed[i][j]):
                     color = self.YELLOW
                     try:
                         _ = right_highlights[right_letters_guessed[i][j]]
@@ -198,8 +260,22 @@ class Dordle:
 
         # TODO: modify positions with title and new game
 
-        title = pygame.Rect(20, 10, 80, 80)
-        pygame.draw.rect(self.win, (0, 0, 0), title)
+        # draw title
+
+        title = pygame.Rect(20, 10, 100, 80)
+        pygame.draw.rect(self.win, (0, 0, 0), title, 2)
+        text = self.CAPTION_FONT.render("title", True, (0, 0, 0))
+        self.win.blit(text, (title.x + title.width / 2 - text.get_width() / 2, title.y + title.height / 2 - text.get_height() / 2))
+        positions["title"] = title
+
+        if is_free:
+            # draw new game
+            new_game = pygame.Rect(WIDTH - 20 - 200, 10, 200, 80)
+            pygame.draw.rect(self.win, (0, 0, 0), new_game, 2)
+            text = self.CAPTION_FONT.render("new game", True, (0, 0, 0))
+            self.win.blit(text, (new_game.x + new_game.width / 2 - text.get_width() / 2, new_game.y + new_game.height / 2 - text.get_height() / 2))
+            positions["new game"] = new_game
+
         pygame.display.update()
 
         return positions
